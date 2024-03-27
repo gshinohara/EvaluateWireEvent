@@ -23,7 +23,6 @@ namespace EvaluateWireEvent.Utilities
     {
         public static void ObjectChangedAndWired(IGH_DocumentObject sender, GH_ObjectChangedEventArgs e)
         {
-            Rhino.RhinoApp.WriteLine("");
             if (GetWire(sender, e) is WireLR wire)
             {
                 //Check Access
