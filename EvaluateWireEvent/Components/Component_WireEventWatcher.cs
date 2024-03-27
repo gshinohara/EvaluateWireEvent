@@ -1,18 +1,12 @@
-﻿using Grasshopper;
-using Grasshopper.GUI.Canvas;
-using Grasshopper.GUI.Canvas.Interaction;
+﻿using EvaluateWireEvent.Utilities;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Attributes;
 using System;
 using System.Linq;
-using System.Reflection;
 
 namespace EvaluateWireEvent.Components
 {
     public class Component_WireEventWatcher : GH_Component
     {
-        private GH_Canvas canvas;
-
         public Component_WireEventWatcher()
           : base("Wire Event Watcher", "Watcher",
               "",
@@ -32,17 +26,24 @@ namespace EvaluateWireEvent.Components
         {
         }
 
+        private static void ObjectChangedAndWired(IGH_DocumentObject sender, GH_ObjectChangedEventArgs e)
+        {
+            if (WiringFunctions.GetWire(sender, e) is WireLR wire)
+            {
+                if (wire.Mode is string mode && wire.LeftObject is IGH_ActiveObject left && wire.RightObject is IGH_ActiveObject right)
+                    Rhino.RhinoApp.WriteLine($"Wire event changing object ({mode.ToString()}): {left.Name} -> {right.Name}");
+            }
+        }
+
         public override void AddedToDocument(GH_Document document)
         {
             foreach (IGH_ActiveObject activeObject in document.ActiveObjects())
-                activeObject.ObjectChanged += ActiveObject_ObjectChanged;
+                activeObject.ObjectChanged += Component_WireEventWatcher.ObjectChangedAndWired;
 
-            document.ObjectsAdded += Document_ObjectsAdded;
-            document.ObjectsDeleted += Document_ObjectsDeleted;
+            document.ObjectsAdded += this.Document_ObjectsAdded;
+            document.ObjectsDeleted += this.Document_ObjectsDeleted;
 
-            GH_Canvas canvas = Instances.ActiveCanvas;
-            if (canvas.Document == document)
-                this.canvas = canvas;
+            Rhino.RhinoApp.WriteLine($"{Name} is loaded, {document.Objects.Count(o => o is Component_WireEventWatcher) - 1} already existing.");
 
             base.AddedToDocument(document);
         }
@@ -50,54 +51,14 @@ namespace EvaluateWireEvent.Components
         public override void RemovedFromDocument(GH_Document document)
         {
             foreach (IGH_ActiveObject activeObject in document.ActiveObjects())
-                activeObject.ObjectChanged -= ActiveObject_ObjectChanged;
+                activeObject.ObjectChanged -= Component_WireEventWatcher.ObjectChangedAndWired;
 
-            document.ObjectsAdded -= Document_ObjectsAdded;
-            document.ObjectsDeleted -= Document_ObjectsDeleted;
+            document.ObjectsAdded -= this.Document_ObjectsAdded;
+            document.ObjectsDeleted -= this.Document_ObjectsDeleted;
+
+            Rhino.RhinoApp.WriteLine($"{Name} is destroyed, {document.Objects.Count(o => o is Component_WireEventWatcher)} remaining.");
 
             base.RemovedFromDocument(document);
-        }
-
-        private void ActiveObject_ObjectChanged(IGH_DocumentObject sender, GH_ObjectChangedEventArgs e)
-        {
-            if (e.Type == GH_ObjectEventType.Sources && sender is IGH_Param param)
-            {
-                if (!(canvas is null) && canvas.Document.SolutionState == GH_ProcessStep.PreProcess && canvas.ActiveInteraction is GH_WireInteraction wireInteraction)
-                {
-                    //if param is null, get_parent returns null.
-                    Func<IGH_Param, IGH_ActiveObject> get_parent = p =>
-                    {
-                        IGH_ActiveObject activeObject = p;
-                        if (p.Attributes is GH_LinkedParamAttributes linkedAtt && linkedAtt.Parent.DocObject is IGH_Component component)
-                            activeObject = component;
-                        return activeObject;
-                    };
-
-                    //get_field is a function of wireInteraction.
-                    Func<string, object> get_field = name => wireInteraction.GetType().GetField(name, BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance).GetValue(wireInteraction);
-
-                    if (get_field("m_mode") is object w_mode && get_field("m_source") is IGH_Param w_source && get_field("m_target") is IGH_Param w_target)
-                    {
-                        IGH_ActiveObject left;
-                        IGH_ActiveObject right;
-                        if (w_source == param)
-                        {
-                            left = get_parent(w_target);
-                            right = get_parent(w_source);
-                        }
-                        else if (w_target == param)
-                        {
-                            left = get_parent(w_source);
-                            right = get_parent(w_target);
-                        }
-                        else
-                            return;
-
-                        if (left != null && right != null)
-                            Rhino.RhinoApp.WriteLine($"Wire event changing object ({w_mode.ToString()}): {left.Name} -> {right.Name}");
-                    }
-                }
-            }
         }
 
         private void Document_ObjectsAdded(object sender, GH_DocObjectEventArgs e)
@@ -105,7 +66,7 @@ namespace EvaluateWireEvent.Components
             foreach (IGH_DocumentObject obj in e.Objects)
             {
                 if (obj is IGH_ActiveObject activeObject)
-                    activeObject.ObjectChanged += ActiveObject_ObjectChanged;
+                    activeObject.ObjectChanged += Component_WireEventWatcher.ObjectChangedAndWired;
             }
         }
 
@@ -114,7 +75,7 @@ namespace EvaluateWireEvent.Components
             foreach (IGH_DocumentObject obj in e.Objects)
             {
                 if (obj is IGH_ActiveObject activeObject)
-                    activeObject.ObjectChanged -= ActiveObject_ObjectChanged;
+                    activeObject.ObjectChanged -= Component_WireEventWatcher.ObjectChangedAndWired;
             }
         }
 

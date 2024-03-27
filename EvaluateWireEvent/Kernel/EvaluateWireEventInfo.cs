@@ -3,7 +3,7 @@ using Grasshopper.Kernel;
 using System;
 using System.Drawing;
 
-namespace EvaluateWireEvent
+namespace EvaluateWireEvent.Kernel
 {
     //No one need to edit this definition.
     public class EvaluateWireEventInfo : GH_AssemblyInfo
