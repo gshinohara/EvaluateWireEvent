@@ -10,7 +10,7 @@ namespace EvaluateWireEvent.Utilities
 {
     public static partial class WiringFunctions
     {
-        internal static WireLR GetWire(IGH_DocumentObject sender, GH_ObjectChangedEventArgs e)
+        public static WireLR GetWire(IGH_DocumentObject sender, GH_ObjectChangedEventArgs e)
         {
             if (e.Type == GH_ObjectEventType.Sources && sender is IGH_Param param)
             {
