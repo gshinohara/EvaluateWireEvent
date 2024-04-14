@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GH_EvaluateWireEvent", "GH_EvaluateWireEvent\GH_EvaluateWireEvent.csproj", "{C8AF962A-994F-4C22-9F71-F3C2700CDBFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvaluateWireEvent_Common", "EvaluateWireEvent_Common\EvaluateWireEvent_Common.csproj", "{957A9D9C-0371-43D5-9A74-5810F11CA26C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common_EvaluateWireEvent", "Common_EvaluateWireEvent\Common_EvaluateWireEvent.csproj", "{957A9D9C-0371-43D5-9A74-5810F11CA26C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

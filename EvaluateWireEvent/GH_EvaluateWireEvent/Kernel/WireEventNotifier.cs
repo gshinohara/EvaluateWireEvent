@@ -1,5 +1,7 @@
 ﻿using EvaluateWireEvent;
+using Grasshopper;
 using Grasshopper.GUI.Canvas;
+using Grasshopper.GUI.Canvas.Interaction;
 using Grasshopper.Kernel;
 
 namespace GH_EvaluateWireEvent.Kernel
@@ -22,8 +24,8 @@ namespace GH_EvaluateWireEvent.Kernel
 
             foreach (IGH_ActiveObject activeObject in document.ActiveObjects())
             {
-                activeObject.ObjectChanged -= WireFunctions.OnAddSource;
-                activeObject.ObjectChanged += WireFunctions.OnAddSource;
+                activeObject.ObjectChanged -= OnAddedSource;
+                activeObject.ObjectChanged += OnAddedSource;
             }
 
             document.ObjectsAdded -= Document_ObjectsAdded;
@@ -38,8 +40,13 @@ namespace GH_EvaluateWireEvent.Kernel
         {
             foreach (IGH_DocumentObject obj in e.Objects)
             {
-                if (obj is IGH_ActiveObject activeObject)
-                    activeObject.
+                if (obj is IGH_Param param)
+                    param.ObjectChanged += OnAddedSource;
+                if (obj is IGH_Component component)
+                {
+                    foreach (IGH_Param param_component in component.Params.Input)
+                        param_component.ObjectChanged += OnAddedSource;
+                }
             }
         }
 
@@ -47,8 +54,26 @@ namespace GH_EvaluateWireEvent.Kernel
         {
             foreach (IGH_DocumentObject obj in e.Objects)
             {
-                if (obj is IGH_ActiveObject activeObject)
-                    activeObject.ObjectChanged -= WireFunctions.OnAddSource;
+                if (obj is IGH_Param param)
+                    param.ObjectChanged -= OnAddedSource;
+                if (obj is IGH_Component component)
+                {
+                    foreach (IGH_Param param_component in component.Params.Input)
+                        param_component.ObjectChanged -= OnAddedSource;
+                }
+            }
+        }
+
+        private static void OnAddedSource(IGH_DocumentObject sender, GH_ObjectChangedEventArgs e)
+        {
+            if (sender is IGH_Param param && Instances.ActiveCanvas.ActiveInteraction is GH_WireInteraction wireInteraction)
+            {
+                wireInteraction.WireProperties(out IGH_Param source, out IGH_Param target, out string mode);
+
+                if (param == source || param == target)
+                {
+                    param.CheckMatching();
+                }
             }
         }
     }

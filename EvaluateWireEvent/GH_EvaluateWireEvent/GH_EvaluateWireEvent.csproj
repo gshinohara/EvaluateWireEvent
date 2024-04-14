@@ -15,7 +15,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\EvaluateWireEvent_Common\EvaluateWireEvent_Common.csproj" />
+    <ProjectReference Include="..\Common_EvaluateWireEvent\Common_EvaluateWireEvent.csproj" />
   </ItemGroup>
 
 </Project>
